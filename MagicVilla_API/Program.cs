@@ -1,6 +1,8 @@
 using MagicVilla_API.DI;
 using MagicVilla_API.Logging;
 using MagicVilla_API.Models;
+using MagicVilla_API.Repository;
+using MagicVilla_API.Repository.IRepository;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 
@@ -30,6 +32,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddSingleton<ILogging, Logging>();
+builder.Services.AddScoped<IVillaRepository, VillaRepository>();
 
 var app = builder.Build();
 
