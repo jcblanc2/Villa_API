@@ -35,7 +35,7 @@ namespace MagicVilla_API.Controllers
         {
             try
             {
-                IEnumerable<VillaNumber> VillaNumberList = await _villaNumberRepository.GetAllAsync();
+                IEnumerable<VillaNumber> VillaNumberList = await _villaNumberRepository.GetAllAsync(includeProperties: "Villa");
 
                 _response.Results = _mapper.Map<List<VillaNumberDto>>(VillaNumberList);
                 _response.StatusCode = HttpStatusCode.OK;
@@ -66,7 +66,7 @@ namespace MagicVilla_API.Controllers
                     return BadRequest(_response);
                 }
 
-                var villaNumber = await _villaNumberRepository.GetAsync(v => v.VillaNo == villaNo);
+                var villaNumber = await _villaNumberRepository.GetAsync(v => v.VillaNo == villaNo, includeProperties: "Villa");
                 if (villaNumber == null)
                 {
                     _response.StatusCode = HttpStatusCode.NotFound;
@@ -106,14 +106,20 @@ namespace MagicVilla_API.Controllers
 
                 if (await _villaNumberRepository.GetAsync(v => v.VillaNo == villaNumberCreateDto.VillaNo) != null)
                 {
-                    ModelState.AddModelError("CustomError", "VillaNumber already Exists!");
-                    return BadRequest(ModelState);
+                    ModelState.AddModelError("ErrorMessage", "VillaNumber already Exists!");
+                    _response.StatusCode = HttpStatusCode.BadRequest;
+                    _response.IsSuccess = false;
+                    _response.ErrorsMessages.Add("VillaNumber already Exists!");
+                    return BadRequest(_response);
                 }
 
-                if (await _villaNumberRepository.GetAsync(v => v.VillaID == villaNumberCreateDto.VillaID) == null)
+                if (await _villaNumberRepository.GetAsync(v => v.VillaID == villaNumberCreateDto.VillaID) != null)
                 {
-                    ModelState.AddModelError("CustomError", "Villa ID is invalid!");
-                    return NotFound(ModelState);
+                    ModelState.AddModelError("ErrorMessage", "Villa ID is invalid!");
+                    _response.StatusCode = HttpStatusCode.BadRequest;
+                    _response.IsSuccess = false;
+                    _response.ErrorsMessages.Add("VillaNumber already Exists!");
+                    return NotFound(_response);
                 }
 
                 VillaNumber villaNumber = _mapper.Map<VillaNumber>(villaNumberCreateDto);
