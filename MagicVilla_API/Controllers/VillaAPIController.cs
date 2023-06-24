@@ -105,7 +105,7 @@ namespace MagicVilla_API.Controllers
 
                 if (await _villaRepository.GetAsync(v => v.Name.ToLower().Equals(villaCreateDto.Name.ToLower())) != null)
                 {
-                    ModelState.AddModelError("CustomError", "Villa already Exists!");
+                    ModelState.AddModelError("ErrorMessage", "Villa already Exists!");
                     return BadRequest(ModelState);
                 }
 
@@ -115,6 +115,7 @@ namespace MagicVilla_API.Controllers
                 _response.Results = _mapper.Map<VillaDto>(villa);
                 _response.StatusCode = HttpStatusCode.Created;
 
+                _logger.LogInformation("Create villa");
                 return CreatedAtRoute("GetVilla", new { id = villa.Id }, _response);
             }
             catch (Exception ex)

@@ -1,6 +1,14 @@
 using MagicVilla_FronEnd.DI;
+using MagicVilla_FronEnd.Services;
+using MagicVilla_FronEnd.Services.IServices;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddHttpClient<IVillaService, VillaService>();
+builder.Services.AddScoped<IVillaService, VillaService>();
+
+builder.Services.AddHttpClient<IVillaNumberServices, VillaNumberService>();
+builder.Services.AddScoped<IVillaNumberServices, VillaNumberService>();
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
