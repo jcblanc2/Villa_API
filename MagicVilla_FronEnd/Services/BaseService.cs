@@ -2,6 +2,7 @@
 using MagicVilla_FronEnd.Services.IServices;
 using MagicVilla_Utility;
 using Newtonsoft.Json;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json.Serialization;
 
@@ -49,6 +50,12 @@ namespace MagicVilla_FronEnd.Services
                 }
 
                 HttpResponseMessage apiResponse = null;
+
+                if (!string.IsNullOrEmpty(ApiRequest.Token))
+                {
+                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", ApiRequest.Token);
+                }
+
                 apiResponse = await client.SendAsync(message);
 
                 var apiContent = await apiResponse.Content.ReadAsStringAsync();

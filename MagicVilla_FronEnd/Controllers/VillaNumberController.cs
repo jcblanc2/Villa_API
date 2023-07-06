@@ -4,6 +4,7 @@ using MagicVilla_FronEnd.Models.DTOS;
 using MagicVilla_FronEnd.Models.ViewModel;
 using MagicVilla_FronEnd.Services;
 using MagicVilla_FronEnd.Services.IServices;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Newtonsoft.Json;
@@ -35,7 +36,7 @@ namespace MagicVilla_FronEnd.Controllers
             return View(list);
         }
 
-
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> CreateVillaNumber()
         {
             VillaNumberCreateView createView = new VillaNumberCreateView();
@@ -54,6 +55,7 @@ namespace MagicVilla_FronEnd.Controllers
             return View(createView);
         }
 
+        [Authorize(Roles = "admin")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateVillaNumber(VillaNumberCreateView createView)
@@ -88,7 +90,7 @@ namespace MagicVilla_FronEnd.Controllers
             return View(createView);
         }
 
-
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> UpdateVillaNumber(int villaNo)
         {
             VillaNumberUpdateView updateView = new VillaNumberUpdateView();
@@ -114,6 +116,7 @@ namespace MagicVilla_FronEnd.Controllers
             return NotFound();
         }
 
+        [Authorize(Roles = "admin")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateVillaNumber(VillaNumberUpdateView updateView)
@@ -150,7 +153,7 @@ namespace MagicVilla_FronEnd.Controllers
 
 
 
-
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> DeleteVillaNumber(int villaNo)
         {
             VillaNumberDeleteView deleteView = new VillaNumberDeleteView();
@@ -176,6 +179,7 @@ namespace MagicVilla_FronEnd.Controllers
             return NotFound();
         }
 
+        [Authorize(Roles = "admin")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteVillaNumber(VillaNumberDeleteView model)

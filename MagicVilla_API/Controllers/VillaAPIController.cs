@@ -4,6 +4,7 @@ using MagicVilla_API.Model;
 using MagicVilla_API.Models;
 using MagicVilla_API.Models.DTOS;
 using MagicVilla_API.Repository.IRepository;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -31,6 +32,8 @@ namespace MagicVilla_API.Controllers
 
         #region GetVillas
         [HttpGet]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult<APIResponse>> GetVillas()
         {
@@ -91,6 +94,7 @@ namespace MagicVilla_API.Controllers
 
         #region CreateVilla
         [HttpPost]
+        [Authorize(Roles = "admin")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -128,6 +132,7 @@ namespace MagicVilla_API.Controllers
         #endregion
 
         #region DeleteVilla
+        [Authorize(Roles = "CUSTOM")]
         [HttpDelete("{id:int}", Name = "DeleteVilla")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -164,6 +169,7 @@ namespace MagicVilla_API.Controllers
         #endregion
 
         #region UpdateVilla
+        [Authorize(Roles = "admin")]
         [HttpPut("{id:int}", Name = "UpdateVilla")]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -201,6 +207,7 @@ namespace MagicVilla_API.Controllers
         #endregion
 
         #region UpdatePartialVilla
+        [Authorize(Roles = "admin")]
         [HttpPatch("{id:int}", Name = "UpdatePartialVilla")]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
