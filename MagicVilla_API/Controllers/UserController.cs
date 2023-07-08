@@ -9,8 +9,9 @@ using System.Net;
 
 namespace MagicVilla_API.Controllers
 {
-    [Route("api/UsersAuth")]
+    [Route("api/v{version:apiVersion}/UsersAuth")]
     [ApiController]
+    [ApiVersionNeutral]
     public class UserController : ControllerBase
     {
         #region UserController Depandency Injection
@@ -21,7 +22,7 @@ namespace MagicVilla_API.Controllers
         {
             _userRepository = userRepository;
             _mapper = mapper;
-            this._response = new();
+            _response = new();
         }
         #endregion
 
@@ -64,7 +65,7 @@ namespace MagicVilla_API.Controllers
             if (user == null)
             {
                 _response.IsSuccess = false;
-                _response.ErrorsMessages = new List<string> () { "Error while registering"};
+                _response.ErrorsMessages = new List<string>() { "Error while registering" };
                 _response.StatusCode = HttpStatusCode.BadRequest;
                 return BadRequest(_response);
             }

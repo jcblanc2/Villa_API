@@ -63,7 +63,7 @@ namespace MagicVilla_API.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Villas");
+                    b.ToTable("Villas", (string)null);
 
                     b.HasData(
                         new
@@ -163,7 +163,7 @@ namespace MagicVilla_API.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("LocalUsers");
+                    b.ToTable("LocalUsers", (string)null);
                 });
 
             modelBuilder.Entity("MagicVilla_API.Models.VillaNumber", b =>
@@ -188,7 +188,7 @@ namespace MagicVilla_API.Migrations
 
                     b.HasIndex("VillaID");
 
-                    b.ToTable("VillasNumber");
+                    b.ToTable("VillasNumber", (string)null);
                 });
 
             modelBuilder.Entity("MagicVilla_API.Models.VillaNumber", b =>

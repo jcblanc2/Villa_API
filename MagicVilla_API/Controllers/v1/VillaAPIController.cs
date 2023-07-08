@@ -10,10 +10,11 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Net;
 
-namespace MagicVilla_API.Controllers
+namespace MagicVilla_API.Controllers.v1
 {
-    [Route("api/VillaAPI")]
+    [Route("api/v{version:apiVersion}/VillaAPI")]
     [ApiController]
+    [ApiVersion("1.0")]
     public class VillaAPIController : ControllerBase
     {
         #region VillaAPIController Depandency Injection
@@ -26,7 +27,7 @@ namespace MagicVilla_API.Controllers
             _logger = logger;
             _villaRepository = villaRepository;
             _mapper = mapper;
-            this._response = new();
+            _response = new();
         }
         #endregion
 
@@ -47,7 +48,7 @@ namespace MagicVilla_API.Controllers
                 _response.StatusCode = HttpStatusCode.OK;
                 return Ok(_response);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _response.IsSuccess = false;
                 _response.ErrorsMessages = new List<string>() { ex.ToString() };
