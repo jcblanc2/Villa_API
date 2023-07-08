@@ -4,6 +4,7 @@ using MagicVilla_API.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace MagicVilla_API.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230704200956_addSaltInTableUser")]
+    partial class addSaltInTableUser
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -63,7 +66,7 @@ namespace MagicVilla_API.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Villas", (string)null);
+                    b.ToTable("Villas");
 
                     b.HasData(
                         new
@@ -163,7 +166,7 @@ namespace MagicVilla_API.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("LocalUsers", (string)null);
+                    b.ToTable("LocalUsers");
                 });
 
             modelBuilder.Entity("MagicVilla_API.Models.VillaNumber", b =>
@@ -188,7 +191,7 @@ namespace MagicVilla_API.Migrations
 
                     b.HasIndex("VillaID");
 
-                    b.ToTable("VillasNumber", (string)null);
+                    b.ToTable("VillasNumber");
                 });
 
             modelBuilder.Entity("MagicVilla_API.Models.VillaNumber", b =>

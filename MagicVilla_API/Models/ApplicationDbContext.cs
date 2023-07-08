@@ -9,6 +9,8 @@ namespace MagicVilla_API.Models
 
         public DbSet<Villa> Villas { get; set; }
         public DbSet<VillaNumber> VillasNumber { get; set;}
+        public DbSet<LocalUser> LocalUsers { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

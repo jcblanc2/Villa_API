@@ -5,31 +5,34 @@ using MagicVilla_API.Models;
 using MagicVilla_API.Models.DTOS;
 using MagicVilla_API.Repository;
 using MagicVilla_API.Repository.IRepository;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Net;
 
-namespace MagicVilla_API.Controllers
+namespace MagicVilla_API.Controllers.v1
 {
-    [Route("api/VillaNumberAPI")]
+    [Route("api/v{version:apiVersion}/VillaNumberAPI")]
     [ApiController]
-    public class VillaNumberAPIController : ControllerBase
+    [ApiVersion("1.0")]
+    public class VillaNumberAPIV1Controller : ControllerBase
     {
-        #region VillaNumberAPIController Depandency Injection
+        #region VillaNumberAPIV1Controller Depandency Injection
         private readonly IVillaNumberRepository _villaNumberRepository;
         private readonly IMapper _mapper;
         protected APIResponse _response;
-        public VillaNumberAPIController(IVillaNumberRepository villaNumberRepository, IMapper mapper)
+        public VillaNumberAPIV1Controller(IVillaNumberRepository villaNumberRepository, IMapper mapper)
         {
             _villaNumberRepository = villaNumberRepository;
             _mapper = mapper;
-            this._response = new();
+            _response = new();
         }
         #endregion
 
         #region GetVillaNumbers
         [HttpGet]
+        [MapToApiVersion("1.0")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult<APIResponse>> GetVillaNumbers()
         {
@@ -50,6 +53,12 @@ namespace MagicVilla_API.Controllers
             return _response;
         }
         #endregion
+
+        [HttpGet("GetStrings")]
+        public IEnumerable<string> Get()
+        {
+            return new string[] { "String1", "String1" };
+        }
 
         #region GetVillaNumber
         [HttpGet("{villaNo:int}", Name = "GetVillaNumber")]
@@ -90,6 +99,7 @@ namespace MagicVilla_API.Controllers
 
         #region CreateVillaNumber
         [HttpPost]
+        [Authorize(Roles = "admin")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -140,6 +150,7 @@ namespace MagicVilla_API.Controllers
         #endregion
 
         #region DeleteVillaNumer
+        [Authorize(Roles = "CUSTOM")]
         [HttpDelete("{villaNo:int}", Name = "DeleteVillaNumer")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -180,6 +191,7 @@ namespace MagicVilla_API.Controllers
         #endregion
 
         #region UpdateVillaNumber
+        [Authorize(Roles = "admin")]
         [HttpPut("{villaNo:int}", Name = "UpdateVillaNumber")]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -204,7 +216,7 @@ namespace MagicVilla_API.Controllers
                     _response.ErrorsMessages = new List<string>() { "Villa ID is invalid!" };
                     return NotFound(_response);
                 }
-      
+
                 VillaNumber villaNumberModel = _mapper.Map<VillaNumber>(villaNumberUpdateDto);
                 await _villaNumberRepository.UpdateAsync(villaNumberModel);
 
@@ -223,6 +235,7 @@ namespace MagicVilla_API.Controllers
         #endregion
 
         #region UpdatePartialVillaNumber
+        [Authorize(Roles = "admin")]
         [HttpPatch("{villaNo:int}", Name = "UpdatePartialVillaNumber")]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
