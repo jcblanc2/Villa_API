@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
 using System.Reflection;
 using System.Security.Claims;
 
@@ -37,9 +38,12 @@ namespace MagicVilla_FronEnd.Controllers
             {
                 LoginResponseDto model  = JsonConvert.DeserializeObject<LoginResponseDto>(Convert.ToString(response.Results));
 
+                var handler = new JwtSecurityTokenHandler();
+                var jwt = handler.ReadJwtToken(model.Token);
+
                 var identity = new ClaimsIdentity(CookieAuthenticationDefaults.AuthenticationScheme);
-                identity.AddClaim(new Claim(ClaimTypes.Name, model.User.Name));
-                identity.AddClaim(new Claim(ClaimTypes.Role, model.User.Role));
+                identity.AddClaim(new Claim(ClaimTypes.Name, jwt.Claims.FirstOrDefault(u => u.Type == "name").Value));
+                identity.AddClaim(new Claim(ClaimTypes.Role, jwt.Claims.FirstOrDefault(u => u.Type == "role").Value));
 
                 var principal = new ClaimsPrincipal(identity);
                 await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);

@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Net;
+using System.Text.Json;
 
 namespace MagicVilla_API.Controllers.v1
 {
@@ -33,16 +34,34 @@ namespace MagicVilla_API.Controllers.v1
 
         #region GetVillas
         [HttpGet]
+        [ResponseCache(CacheProfileName = "Default30")]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult<APIResponse>> GetVillas()
+        public async Task<ActionResult<APIResponse>> GetVillas([FromQuery(Name = "filterOccupancy")] int? occupancy,
+            [FromQuery] string? search, int pageSize = 0, int pageNumber = 1)
         {
             try
             {
                 _logger.LogInformation("Get all villas");
 
-                IEnumerable<Villa> villasList = await _villaRepository.GetAllAsync();
+                IEnumerable<Villa> villasList;
+                if (occupancy > 0)
+                {
+                    villasList = await _villaRepository.GetAllAsync(v => v.Occupancy == occupancy, pageSize:pageSize, pageNumber:pageNumber);
+                }
+                else
+                {
+                    villasList = await _villaRepository.GetAllAsync(pageSize: pageSize, pageNumber: pageNumber);
+                }
+
+                if (!string.IsNullOrEmpty(search))
+                {
+                    villasList = villasList.Where(u => u.Name.Contains(search));
+                }
+
+                Pagination pagination = new Pagination {PageSize = pageSize, PageNumber = pageNumber };
+                Response.Headers.Add("X-Pagination", JsonSerializer.Serialize(pagination));
 
                 _response.Results = _mapper.Map<List<VillaDto>>(villasList);
                 _response.StatusCode = HttpStatusCode.OK;
@@ -58,6 +77,7 @@ namespace MagicVilla_API.Controllers.v1
         #endregion
 
         #region GetVilla
+        [ResponseCache(Duration = 30)]
         [HttpGet("{id:int}", Name = "GetVilla")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]

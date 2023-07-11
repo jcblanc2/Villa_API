@@ -1,7 +1,9 @@
-﻿using MagicVilla_API.DI;
+﻿using AutoMapper;
+using MagicVilla_API.DI;
 using MagicVilla_API.Models;
 using MagicVilla_API.Models.DTOS;
 using MagicVilla_API.Repository.IRepository;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -12,90 +14,103 @@ namespace MagicVilla_API.Repository
 {
     public class UserRepository : IUserRepository
     {
+        private readonly UserManager<ApplicationUser> _userManager;
         private readonly ApplicationDbContext _dbContext;
+        private readonly RoleManager<IdentityRole> _roleManager;
         private string secretKey;
-        public UserRepository(ApplicationDbContext dbContext, IConfiguration configuration)
+        private readonly IMapper _mapper;
+        public UserRepository(ApplicationDbContext dbContext, IConfiguration configuration, UserManager<ApplicationUser> userManager, IMapper mapper, RoleManager<IdentityRole> roleManager)
         {
             _dbContext = dbContext;
             secretKey = configuration.GetValue<string>("APISettings:Secret");
+            _userManager = userManager;
+            _roleManager = roleManager;
+            _mapper = mapper;
         }
         
         public bool IsUnique(string username)
         {
-            var user = _dbContext.LocalUsers.FirstOrDefault(u => u.Username.Equals(username));
+            var user = _dbContext.ApplicationUsers.FirstOrDefault(u => u.UserName.Equals(username));
             return user == null;
         }
 
         public async Task<LoginResponseDto> Login(LoginDto loginDto)
         {
 
-            var user = await _dbContext.LocalUsers.FirstOrDefaultAsync(u => u.Username.Equals(loginDto.Username));
+            var user = await _dbContext.ApplicationUsers.FirstOrDefaultAsync(u => u.UserName.Equals(loginDto.Username));
 
-            if(user != null)
+            bool isValid = await _userManager.CheckPasswordAsync(user, loginDto.Password);
+            if(user == null || isValid == false)
             {
-                string hashedPassword = PasswordHelper.HashPassword(loginDto.Password, user.Salt);
-
-                if (user.Password.Equals(hashedPassword))
+                LoginResponseDto loginResponse = new LoginResponseDto()
                 {
-                    // Generate JWT Token
-                    var tokenHandler = new JwtSecurityTokenHandler();
-                    var key = Encoding.ASCII.GetBytes(secretKey);
-
-                    var tokenDescriptor = new SecurityTokenDescriptor
-                    {
-                        Subject = new ClaimsIdentity(new Claim[]
-                        {
-                            new Claim(ClaimTypes.Name, user.Id.ToString()),
-                            new Claim(ClaimTypes.Role, user.Role)
-                        }),
-                        Expires = DateTime.UtcNow.AddDays(1),
-                        SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
-                    };
-
-                    var token = tokenHandler.CreateToken(tokenDescriptor);
-                    user.Password = "";
-                    user.Salt = "";
-
-                    LoginResponseDto loginResponseDto = new LoginResponseDto()
-                    {
-                        Token = tokenHandler.WriteToken(token),
-                        User = user
-                    };
-
-                    return loginResponseDto;
-                }
+                    Token = "",
+                    User = null
+                };
             }
 
-            LoginResponseDto loginResponse = new LoginResponseDto()
+            var role = await _userManager.GetRolesAsync(user);
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.ASCII.GetBytes(secretKey);
+
+            var tokenDescriptor = new SecurityTokenDescriptor
             {
-                Token = "",
-                User = null
+                Subject = new ClaimsIdentity(new Claim[]
+                {
+                            new Claim(ClaimTypes.Name, user.UserName.ToString()),
+                            new Claim(ClaimTypes.Role, role.FirstOrDefault())
+                }),
+                Expires = DateTime.UtcNow.AddDays(1),
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
 
-            return loginResponse;
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+
+            LoginResponseDto loginResponseDto = new LoginResponseDto()
+            {
+                Token = tokenHandler.WriteToken(token),
+                User = _mapper.Map<UserDto>(user),
+                //Role = role.FirstOrDefault()
+            };
+
+            return loginResponseDto;
         }
 
-        public async Task<LocalUser> Register(RegisterationDto registerationDto)
+        public async Task<UserDto> Register(RegisterationDto registerationDto)
         {
-            string salt = PasswordHelper.GenerateSalt();
-            string hashedPassword = PasswordHelper.HashPassword(registerationDto.Password, salt);
-
-            LocalUser localUser = new LocalUser()
+            ApplicationUser user = new ApplicationUser()
             {
-                Username = registerationDto.Username,
+                UserName = registerationDto.Username,
                 Name = registerationDto.Name,
-                Password = hashedPassword,
-                Salt = salt,
-                Role = registerationDto.Role
+                Email = registerationDto.Username,
+                NormalizedEmail = registerationDto.Username.ToUpper(),
             };
 
-            _dbContext.LocalUsers.Add(localUser);
-            await _dbContext.SaveChangesAsync();
+            try
+            {
+                var result = await _userManager.CreateAsync(user, registerationDto.Password);
 
-            localUser.Password = "";
-            localUser.Salt = "";
+                if (result.Succeeded)
+                {
+                    if (!_roleManager.RoleExistsAsync("admin").GetAwaiter().GetResult())
+                    {
+                        await _roleManager.CreateAsync(new IdentityRole("admin"));
+                        await _roleManager.CreateAsync(new IdentityRole("customer"));
+                    }
 
-            return localUser;
+                    await _userManager.AddToRoleAsync(user, "admin");
+                    var userReturnDto = _dbContext.ApplicationUsers.FirstOrDefaultAsync(u =>
+                    u.UserName.Equals(registerationDto.Username));
+
+                    return _mapper.Map<UserDto>(userReturnDto);
+                }
+            }
+            catch(Exception ex) 
+            {
+
+            }
+
+            return new UserDto();
         }
     }
 }
